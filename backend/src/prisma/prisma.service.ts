@@ -19,9 +19,6 @@ export class PrismaService
 
   async onModuleInit() {
     await this.$connect()
-
-    // temp log to test db
-    console.log('DB connected, users:', await this.user.count())
   }
 
   async onModuleDestroy() {
