@@ -16,7 +16,7 @@
 - rental
 - message
 ##### dépendances
-- NestJS 11 - Framework back-end
+- NestJS 12 - Framework back-end
 - TypeScript 5.7+ (Strict Mode)
 - Prisma - ORM pour MySQL
 - Passport + JWT - Authentification
