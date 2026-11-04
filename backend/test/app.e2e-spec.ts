@@ -16,11 +16,9 @@ describe('AppController (e2e)', () => {
     await app.init()
   })
 
-  it('/ (GET)', () => {
-    return request(app.getHttpServer())
-      .get('/')
-      .expect(200)
-      .expect('Hello World!')
+  // every route requires a JWT, except the ones marked @Public()
+  it('/ (GET) without token', () => {
+    return request(app.getHttpServer()).get('/').expect(401)
   })
 
   afterEach(async () => {
