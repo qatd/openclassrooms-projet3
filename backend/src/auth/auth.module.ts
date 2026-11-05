@@ -13,7 +13,7 @@ import { JwtStrategy } from './jwt.strategy.js'
   imports: [
     UsersModule,
     PassportModule,
-    // reading the jwt token from .env via config service
+    // reading the jwt secret and expiracy from .env via config service
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
