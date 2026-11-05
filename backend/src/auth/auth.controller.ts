@@ -1,4 +1,14 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Req,
+} from '@nestjs/common'
+import type { Request } from 'express'
+import { UserDto } from '../users/dto/user.dto.js'
 import { AuthService } from './auth.service.js'
 import { LoginDto } from './dto/login.dto.js'
 import { RegisterDto } from './dto/register.dto.js'
@@ -24,5 +34,12 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   login(@Body() loginDto: LoginDto): Promise<{ token: string }> {
     return this.authService.login(loginDto)
+  }
+
+  // no @Public(): the global JwtAuthGuard requires a valid token
+  // request.user is the value returned by JwtStrategy.validate()
+  @Get('me')
+  me(@Req() request: Request & { user: { id: number } }): Promise<UserDto> {
+    return this.authService.me(request.user.id)
   }
 }

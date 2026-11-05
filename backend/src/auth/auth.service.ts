@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import bcrypt from 'bcrypt'
+import { UserDto } from '../users/dto/user.dto.js'
 import { UsersRepository } from '../users/users.repository.js'
 import { LoginDto } from './dto/login.dto.js'
 import { RegisterDto } from './dto/register.dto.js'
@@ -51,5 +52,16 @@ export class AuthService {
     }
 
     return { token: await this.jwtService.signAsync({ sub: user.id }) }
+  }
+
+  async me(userId: number): Promise<UserDto> {
+    const user = await this.usersRepository.findById(userId)
+
+    // the token is valid but its user no longer exists (e.g. account deleted)
+    if (!user) {
+      throw new UnauthorizedException()
+    }
+
+    return new UserDto(user)
   }
 }
