@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common'
+import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common'
 import { RentalDto } from './dto/rental.dto.js'
 import { RentalsService } from './rentals.service.js'
 
@@ -11,5 +11,12 @@ export class RentalsController {
   @Get()
   findAll(): Promise<{ rentals: RentalDto[] }> {
     return this.rentalsService.findAll()
+  }
+
+  // :id arrives as a string in the URL, ParseIntPipe converts it to a number
+  // (or responds 400 if it isn't a number, e.g. /api/rentals/abc)
+  @Get(':id')
+  findById(@Param('id', ParseIntPipe) id: number): Promise<RentalDto> {
+    return this.rentalsService.findById(id)
   }
 }

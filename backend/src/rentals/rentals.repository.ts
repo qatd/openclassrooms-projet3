@@ -21,4 +21,9 @@ export class RentalsRepository {
     // "include" here is the prisma parameter for adding a field. it doesn't filter, it adds an owner field to each fetched rental
     return this.prisma.rental.findMany({ include: withOwner })
   }
+
+  // findUnique: lookup by primary key, returns null when no rental has this id
+  findById(id: number): Promise<RentalWithOwner | null> {
+    return this.prisma.rental.findUnique({ where: { id }, include: withOwner })
+  }
 }
