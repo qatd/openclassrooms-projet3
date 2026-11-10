@@ -1,0 +1,24 @@
+info:
+  name: messages
+  type: http
+  seq: 11
+
+http:
+  method: POST
+  url: "{{baseUrl}}/messages"
+  body:
+    type: json
+    data: |-
+      {
+        "message": "Bonjour, ce logement est-il disponible ?",
+        "user_id": 1,
+        "rental_id": 1
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

@@ -1,0 +1,25 @@
+info:
+  name: rentals update
+  type: http
+  seq: 9
+
+http:
+  method: PUT
+  url: "{{baseUrl}}/rentals/1"
+  body:
+    type: multipart-form
+    data:
+      - name: name
+        type: text
+        value: Maison test modifiée
+      - name: price
+        type: text
+        value: "150"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
