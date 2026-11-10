@@ -3,7 +3,6 @@ import {
   Controller,
   FileTypeValidator,
   Get,
-  MaxFileSizeValidator,
   Param,
   ParseFilePipe,
   ParseIntPipe,
@@ -40,15 +39,20 @@ export class RentalsController {
   // the other fields go to @Body() and are validated by CreateRentalDto
   // @Post() responds 201 by default
   @Post()
-  @UseInterceptors(FileInterceptor('picture'))
+  @UseInterceptors(
+    FileInterceptor('picture', {
+      // multer stops reading the upload past 5 MB (413 Payload Too Large),
+      // so a huge file is never fully loaded in memory
+      limits: { fileSize: 5 * 1024 * 1024, files: 1 },
+    }),
+  )
   create(
     @Body() createRentalDto: CreateRentalDto,
-    // 400 if the picture is missing, larger than 5 MB, or not a jpeg/png/webp image
+    // 400 if the picture is missing or not a jpeg/png/webp image
     // (type checked on the file content, not only on its declared mimetype)
     @UploadedFile(
       new ParseFilePipe({
         validators: [
-          new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }),
           new FileTypeValidator({
             fileType: /^image\/(jpeg|png|webp)$/,
             overrideMimeType: true,
