@@ -26,6 +26,7 @@ import { MessagesService } from './messages.service.js'
 export class MessagesController {
   constructor(private readonly messagesService: MessagesService) {}
 
+  // sends a message about a rental, sender taken from the JWT
   // 200 instead of 201 to match the Mockoon contract
   @Post()
   @HttpCode(HttpStatus.OK)

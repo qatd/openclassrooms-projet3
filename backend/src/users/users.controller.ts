@@ -18,6 +18,7 @@ import { UsersService } from './users.service.js'
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  // returns a user's public info (no email)
   // ParseIntPipe: 400 if :id isn't a number
   @Get(':id')
   @ApiOperation({ summary: "Get a user's public info (no email)" })

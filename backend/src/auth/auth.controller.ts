@@ -29,6 +29,7 @@ import { Public } from './public.decorator.js'
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  // creates an account and returns a JWT
   // 200 instead of Nest's default 201 for POST, to match the API contract (Mockoon)
   // here, public indicate that the route is accessible without token
   @Public()
@@ -44,6 +45,7 @@ export class AuthController {
     return this.authService.register(registerDto)
   }
 
+  // checks the credentials and returns a JWT
   @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
@@ -55,6 +57,7 @@ export class AuthController {
     return this.authService.login(loginDto)
   }
 
+  // returns the logged-in user (identified by the JWT)
   // no @Public(): the global JwtAuthGuard requires a valid token
   // request.user is the value returned by JwtStrategy.validate()
   @Get('me')

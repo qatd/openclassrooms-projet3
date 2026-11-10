@@ -19,6 +19,14 @@ Le script crée la base `chatop_db` et ses tables (`USERS`, `RENTALS`, `MESSAGES
 mysql -u root -p < ressources/sql/schema.sql
 ```
 
+Créer ensuite un utilisateur dédié à l'application, limité à la lecture et à l'écriture des données de `chatop_db` (le compte `root` ne sert qu'à l'installation) :
+
+```sql
+-- à exécuter dans : mysql -u root -p
+CREATE USER 'chatop'@'localhost' IDENTIFIED BY '<mot_de_passe>';
+GRANT SELECT, INSERT, UPDATE, DELETE ON chatop_db.* TO 'chatop'@'localhost';
+```
+
 ## 2. Back-end
 
 ### Installation
@@ -33,7 +41,7 @@ pnpm install
 Créer un fichier `backend/.env` (non versionné) :
 
 ```env
-DATABASE_URL="mysql://<utilisateur>:<mot_de_passe>@localhost:3306/chatop_db"
+DATABASE_URL="mysql://chatop:<mot_de_passe>@localhost:3306/chatop_db"
 JWT_SECRET="<chaîne secrète longue et aléatoire>"
 JWT_EXPIRES_IN="1d"
 API_URL="http://localhost:3001"
@@ -41,7 +49,7 @@ API_URL="http://localhost:3001"
 
 | Variable | Rôle |
 |---|---|
-| `DATABASE_URL` | Connexion à la base MySQL |
+| `DATABASE_URL` | Connexion à la base MySQL, avec l'utilisateur `chatop` créé à l'étape 1 |
 | `JWT_SECRET` | Clé de signature des tokens JWT |
 | `JWT_EXPIRES_IN` | Durée de validité d'un token (ex. `1h`, `1d`) |
 | `API_URL` | Adresse publique de l'API, utilisée pour construire l'URL des images uploadées |

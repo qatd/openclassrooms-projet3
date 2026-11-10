@@ -57,6 +57,7 @@ const pictureValidation = (fileIsRequired: boolean) =>
 export class RentalsController {
   constructor(private readonly rentalsService: RentalsService) {}
 
+  // returns every rental with its owner
   @Get()
   @ApiOperation({ summary: 'Get all rentals' })
   @ApiOkResponse({ type: RentalsResponseDto })
@@ -65,6 +66,7 @@ export class RentalsController {
     return this.rentalsService.findAll()
   }
 
+  // returns one rental with its owner
   // ParseIntPipe: 400 if :id isn't a number
   @Get(':id')
   @ApiOperation({ summary: 'Get a rental by id' })
@@ -76,6 +78,7 @@ export class RentalsController {
     return this.rentalsService.findById(id)
   }
 
+  // creates a rental owned by the logged-in user
   // picture required, 201 by default
   @Post()
   @UseInterceptors(PictureInterceptor)
@@ -95,6 +98,7 @@ export class RentalsController {
     return this.rentalsService.create(createRentalDto, picture, request.user.id)
   }
 
+  // updates a rental (owner only)
   // every field optional (picture too), 200 by default
   @Put(':id')
   @UseInterceptors(PictureInterceptor)
