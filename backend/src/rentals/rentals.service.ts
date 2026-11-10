@@ -1,17 +1,22 @@
 import { randomUUID } from 'node:crypto'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { Injectable, NotFoundException } from '@nestjs/common'
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { UPLOADS_DIR, UPLOADS_PREFIX } from '../common/uploads.js'
 import { CreateRentalDto } from './dto/create-rental.dto.js'
 import { RentalDto } from './dto/rental.dto.js'
+import { UpdateRentalDto } from './dto/update-rental.dto.js'
 import { RentalsRepository } from './rentals.repository.js'
 
 // business logic of rentals
 @Injectable()
 export class RentalsService {
-  // public base URL of the API (e.g. http://localhost:3001), used to build picture URLs
+  // base URL used to build picture URLs
   private readonly apiUrl: string
 
   constructor(
@@ -21,7 +26,7 @@ export class RentalsService {
     this.apiUrl = configService.getOrThrow<string>('API_URL')
   }
 
-  // wrapped in { rentals } because the front reads data.rentals (Home.tsx)
+  // wrapped: the front reads data.rentals
   async findAll(): Promise<{ rentals: RentalDto[] }> {
     const rentals = await this.rentalsRepository.findAll()
 
@@ -31,7 +36,7 @@ export class RentalsService {
   async findById(id: number): Promise<RentalDto> {
     const rental = await this.rentalsRepository.findById(id)
 
-    // the repository returns null for an unknown id: the service turns it into a 404
+    // unknown id: 404
     if (!rental) {
       throw new NotFoundException('Rental not found')
     }
@@ -39,7 +44,7 @@ export class RentalsService {
     return new RentalDto(rental)
   }
 
-  // the owner is the logged-in user (id from the JWT), never a value sent by the client
+  // owner taken from the JWT, never from the client
   async create(
     createRentalDto: CreateRentalDto,
     picture: Express.Multer.File,
@@ -59,10 +64,38 @@ export class RentalsService {
     return { message: 'Rental created!' }
   }
 
-  // writes the uploaded file on the server's disk and returns its public URL (stored in the database)
+  // only the owner can update
+  async update(
+    id: number,
+    updateRentalDto: UpdateRentalDto,
+    picture: Express.Multer.File | undefined,
+    userId: number,
+  ): Promise<{ message: string }> {
+    const rental = await this.rentalsRepository.findById(id)
+
+    if (!rental) {
+      throw new NotFoundException('Rental not found')
+    }
+
+    if (rental.owner_id !== userId) {
+      throw new ForbiddenException('You can only update your own rentals')
+    }
+
+    // fields not sent stay undefined: Prisma keeps them unchanged
+    await this.rentalsRepository.update(id, {
+      name: updateRentalDto.name,
+      surface: updateRentalDto.surface,
+      price: updateRentalDto.price,
+      description: updateRentalDto.description,
+      picture: picture ? await this.savePicture(picture) : undefined,
+    })
+
+    return { message: 'Rental updated!' }
+  }
+
+  // saves the file on disk and returns its public URL
   private async savePicture(picture: Express.Multer.File): Promise<string> {
-    // random name: avoids collisions and ignores the client's file name
-    // extension from the mimetype detected by FileTypeValidator (jpeg, png or webp)
+    // random name, extension from the detected mimetype
     const fileName = `${randomUUID()}.${picture.mimetype.split('/')[1]}`
 
     await mkdir(UPLOADS_DIR, { recursive: true })

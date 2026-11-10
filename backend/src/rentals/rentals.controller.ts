@@ -7,6 +7,7 @@ import {
   ParseFilePipe,
   ParseIntPipe,
   Post,
+  Put,
   Req,
   UploadedFile,
   UseInterceptors,
@@ -15,10 +16,27 @@ import { FileInterceptor } from '@nestjs/platform-express'
 import type { Request } from 'express'
 import { CreateRentalDto } from './dto/create-rental.dto.js'
 import { RentalDto } from './dto/rental.dto.js'
+import { UpdateRentalDto } from './dto/update-rental.dto.js'
 import { RentalsService } from './rentals.service.js'
 
-// HTTP entry point of /api/rentals/* routes
-// no @Public(): every route here requires a valid JWT (global JwtAuthGuard)
+// shared by POST and PUT: multer rejects files over 5 MB (413)
+const PictureInterceptor = FileInterceptor('picture', {
+  limits: { fileSize: 5 * 1024 * 1024, files: 1 },
+})
+
+// jpeg/png/webp only, checked on the file content (400)
+const pictureValidation = (fileIsRequired: boolean) =>
+  new ParseFilePipe({
+    fileIsRequired,
+    validators: [
+      new FileTypeValidator({
+        fileType: /^image\/(jpeg|png|webp)$/,
+        overrideMimeType: true,
+      }),
+    ],
+  })
+
+// no @Public(): every route requires a JWT
 @Controller('rentals')
 export class RentalsController {
   constructor(private readonly rentalsService: RentalsService) {}
@@ -28,41 +46,38 @@ export class RentalsController {
     return this.rentalsService.findAll()
   }
 
-  // :id arrives as a string in the URL, ParseIntPipe converts it to a number
-  // (or responds 400 if it isn't a number, e.g. /api/rentals/abc)
+  // ParseIntPipe: 400 if :id isn't a number
   @Get(':id')
   findById(@Param('id', ParseIntPipe) id: number): Promise<RentalDto> {
     return this.rentalsService.findById(id)
   }
 
-  // multipart/form-data: FileInterceptor extracts the "picture" file (kept in memory),
-  // the other fields go to @Body() and are validated by CreateRentalDto
-  // @Post() responds 201 by default
+  // picture required, 201 by default
   @Post()
-  @UseInterceptors(
-    FileInterceptor('picture', {
-      // multer stops reading the upload past 5 MB (413 Payload Too Large),
-      // so a huge file is never fully loaded in memory
-      limits: { fileSize: 5 * 1024 * 1024, files: 1 },
-    }),
-  )
+  @UseInterceptors(PictureInterceptor)
   create(
     @Body() createRentalDto: CreateRentalDto,
-    // 400 if the picture is missing or not a jpeg/png/webp image
-    // (type checked on the file content, not only on its declared mimetype)
-    @UploadedFile(
-      new ParseFilePipe({
-        validators: [
-          new FileTypeValidator({
-            fileType: /^image\/(jpeg|png|webp)$/,
-            overrideMimeType: true,
-          }),
-        ],
-      }),
-    )
-    picture: Express.Multer.File,
+    @UploadedFile(pictureValidation(true)) picture: Express.Multer.File,
     @Req() request: Request & { user: { id: number } },
   ): Promise<{ message: string }> {
     return this.rentalsService.create(createRentalDto, picture, request.user.id)
+  }
+
+  // every field optional (picture too), 200 by default
+  @Put(':id')
+  @UseInterceptors(PictureInterceptor)
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateRentalDto: UpdateRentalDto,
+    @UploadedFile(pictureValidation(false))
+    picture: Express.Multer.File | undefined,
+    @Req() request: Request & { user: { id: number } },
+  ): Promise<{ message: string }> {
+    return this.rentalsService.update(
+      id,
+      updateRentalDto,
+      picture,
+      request.user.id,
+    )
   }
 }
