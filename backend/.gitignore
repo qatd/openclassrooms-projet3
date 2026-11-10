@@ -6,3 +6,6 @@ node_modules
 
 # TypeScript incremental build cache
 *.tsbuildinfo
+
+# Rental pictures uploaded through POST /api/rentals
+/uploads

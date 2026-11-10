@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import type { Prisma } from '../generated/prisma/client.js'
+import type { Prisma, Rental } from '../generated/prisma/client.js'
 import { PrismaService } from '../prisma/prisma.service.js'
 
 // relation query: joins each rental with its owner (owner_id), keeping only the owner's id and name
@@ -25,5 +25,10 @@ export class RentalsRepository {
   // findUnique: lookup by primary key, returns null when no rental has this id
   findById(id: number): Promise<RentalWithOwner | null> {
     return this.prisma.rental.findUnique({ where: { id }, include: withOwner })
+  }
+
+  // "Unchecked" input: the owner is given by its id (owner_id) instead of a nested relation
+  create(data: Prisma.RentalUncheckedCreateInput): Promise<Rental> {
+    return this.prisma.rental.create({ data })
   }
 }
