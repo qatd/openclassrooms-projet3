@@ -3,3 +3,5 @@ allowBuilds:
   bcrypt: true
   esbuild: true
   prisma: true
+  # telemetry script pulled by swagger-ui-dist: not needed
+  '@scarf/scarf': false

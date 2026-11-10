@@ -1,6 +1,7 @@
 import { ValidationPipe } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
 import type { NestExpressApplication } from '@nestjs/platform-express'
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { AppModule } from './app.module.js'
 import { HttpExceptionFilter } from './common/filters/http-exception.filter.js'
 import { UPLOADS_DIR, UPLOADS_PREFIX } from './common/uploads.js'
@@ -26,6 +27,19 @@ async function bootstrap() {
   // serves uploaded pictures as plain files (e.g. /uploads/<file name>)
   // outside /api and outside the JWT guard: an <img src> can't send a token
   app.useStaticAssets(UPLOADS_DIR, { prefix: UPLOADS_PREFIX })
+
+  // OpenAPI description of the API, built from the controllers and DTOs
+  // addBearerAuth: "Authorize" button to send the JWT with each call
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('ChâTop API')
+    .setDescription('Seasonal rental portal API')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build()
+  const document = SwaggerModule.createDocument(app, swaggerConfig)
+
+  // Swagger UI at /api/docs: served outside the controllers, so the JWT guard doesn't apply
+  SwaggerModule.setup('api/docs', app, document)
 
   // runs onModuleDestroy hooks on shutdown signals like Ctrl+C
   app.enableShutdownHooks()
