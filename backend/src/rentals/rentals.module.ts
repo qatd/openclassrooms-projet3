@@ -8,5 +8,7 @@ import { RentalsService } from './rentals.service.js'
   imports: [PrismaModule],
   controllers: [RentalsController],
   providers: [RentalsService, RentalsRepository],
+  // used by MessagesModule
+  exports: [RentalsRepository],
 })
 export class RentalsModule {}
