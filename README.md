@@ -60,8 +60,6 @@ pnpm start:dev                  # développement (rechargement automatique)
 pnpm build && pnpm start:prod   # production
 ```
 
-L'API est accessible sur [http://localhost:3001/api](http://localhost:3001/api).
-
 ## 3. Front-end
 
 ```bash
